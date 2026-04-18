@@ -9,7 +9,6 @@ export interface VoteData {
   party: Party;
   otherPartyName?: string;
   age: string;
-  occupation: string;
 }
 
 export interface PartyInfo {
@@ -63,28 +62,4 @@ export const AGE_RANGES = [
   '46-55',
   '56-65',
   '66 & above'
-];
-
-export const OCCUPATIONS = [
-  'Farmer / Agriculturist',
-  'Agricultural Labourer',
-  'Fisherman / Fishing-related',
-  'Dairy / Poultry / Livestock',
-  'Factory Worker',
-  'Construction Worker',
-  'Technician (Electrician / Plumber / Mechanic)',
-  'Driver (Auto / Taxi / Lorry)',
-  'Small Business Owner / Shopkeeper',
-  'Street Vendor / Hawker',
-  'Self-employed',
-  'Entrepreneur / Business Owner',
-  'Government Employee',
-  'Private Company Employee',
-  'IT / Software Professional',
-  'Banking / Finance Professional',
-  'Student',
-  'Homemaker',
-  'Unemployed',
-  'Retired',
-  'Other'
 ];

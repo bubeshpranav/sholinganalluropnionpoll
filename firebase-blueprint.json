@@ -17,17 +17,13 @@
           "type": "string",
           "description": "The age range of the voter."
         },
-        "occupation": {
-          "type": "string",
-          "description": "The business type or occupation of the voter."
-        },
         "timestamp": {
           "type": "string",
           "format": "date-time",
           "description": "The time the vote was cast."
         }
       },
-      "required": ["party", "age", "occupation", "timestamp"]
+      "required": ["party", "age", "timestamp"]
     }
   },
   "firestore": {

@@ -20,11 +20,10 @@ service cloud.firestore {
     }
 
     function isValidVote(data) {
-      return data.keys().hasAll(['party', 'age', 'occupation', 'timestamp']) &&
-             data.keys().size() >= 4 && data.keys().size() <= 6 &&
+      return data.keys().hasAll(['party', 'age', 'timestamp']) &&
+             data.keys().size() >= 3 && data.keys().size() <= 4 &&
              data.party is string && data.party.size() <= 100 &&
              data.age is string && data.age.size() <= 50 &&
-             data.occupation is string && data.occupation.size() <= 100 &&
              data.timestamp is timestamp &&
              (data.party != 'Others' || (data.otherPartyName is string && data.otherPartyName.size() <= 100));
     }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart, 
@@ -36,7 +36,7 @@ import {
   onSnapshot, 
   orderBy 
 } from 'firebase/firestore';
-import { PARTIES, AGE_RANGES, OCCUPATIONS, type Party } from './constants';
+import { PARTIES, AGE_RANGES, type Party } from './constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -46,19 +46,19 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function App() {
-  const [view, setView] = useState<'home' | 'poll' | 'dashboard' | 'success'>('home');
+  const [view, setView] = useState<'home' | 'dashboard' | 'success'>('home');
   const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [formData, setFormData] = useState<{
     age: string;
-    occupation: string;
     otherPartyName?: string;
   }>({
     age: '',
-    occupation: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [votes, setVotes] = useState<any[]>([]);
+
+  const ageSectionRef = useRef<HTMLDivElement>(null);
 
   // Fetch votes for dashboard
   useEffect(() => {
@@ -75,7 +75,12 @@ export default function App() {
 
   const handlePartySelect = (party: Party) => {
     setSelectedParty(party);
-    setView('poll');
+    setError(null);
+    
+    // Smooth scroll to age section
+    setTimeout(() => {
+      ageSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const getPartyDisplayName = (vote: any) => {
@@ -90,8 +95,8 @@ export default function App() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!selectedParty || !formData.age || !formData.occupation) {
-      setError('Please fill in all fields');
+    if (!selectedParty || !formData.age) {
+      setError('Please select your party and age');
       return;
     }
 
@@ -108,7 +113,6 @@ export default function App() {
         party: selectedParty,
         otherPartyName: formData.otherPartyName || null,
         age: formData.age,
-        occupation: formData.occupation,
         timestamp: serverTimestamp(),
       });
       setView('success');
@@ -145,8 +149,8 @@ export default function App() {
               key="home"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="space-y-8"
+              exit={{ opacity: 0 }}
+              className="space-y-12"
             >
               <div className="text-center space-y-2">
                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
@@ -168,7 +172,8 @@ export default function App() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handlePartySelect(party.id)}
                     className={cn(
-                      "w-full p-8 rounded-2xl flex items-center justify-between text-left transition-all shadow-xl border-2 border-white/10 relative overflow-hidden group min-h-[140px]",
+                      "w-full p-8 rounded-2xl flex items-center justify-between text-left transition-all shadow-xl border-2 relative overflow-hidden group min-h-[140px]",
+                      selectedParty === party.id ? "border-yellow-400 ring-4 ring-yellow-400/20" : "border-white/10",
                       party.color
                     )}
                     style={party.bgImage ? { 
@@ -185,66 +190,66 @@ export default function App() {
                         {party.subLabel}
                       </p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative z-10">
-                      <ChevronRight size={24} />
-                    </div>
+                    {selectedParty === party.id ? (
+                      <div className="w-12 h-12 rounded-xl bg-yellow-400 text-black flex items-center justify-center relative z-10">
+                        <CheckCircle2 size={24} />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative z-10 transition-transform group-hover:translate-x-1">
+                        <ChevronRight size={24} />
+                      </div>
+                    )}
                   </motion.button>
                 ))}
               </div>
-            </motion.div>
-          )}
 
-          {view === 'poll' && (
-            <motion.div
-              key="poll"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-white/10 p-8 rounded-3xl backdrop-blur-xl border border-white/20"
-            >
-              <button 
-                onClick={() => setView('home')}
-                className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest opacity-70 hover:opacity-100 transition-opacity"
+              <div 
+                ref={ageSectionRef}
+                className={cn(
+                  "p-8 rounded-3xl bg-black/40 border-2 transition-all duration-500 backdrop-blur-xl space-y-8",
+                  selectedParty ? "opacity-100 translate-y-0 border-white/20" : "opacity-30 pointer-events-none translate-y-10 border-transparent text-white/20"
+                )}
               >
-                <ChevronLeft size={16} /> Back
-              </button>
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black uppercase italic leading-tight">
+                    One last step...
+                  </h2>
+                  <p className="text-sm font-bold text-white/50 uppercase tracking-widest">
+                    Selected Party: <span className="text-yellow-400 font-black">{selectedParty ? getPartyDisplayName({ party: selectedParty }) : 'None'}</span>
+                  </p>
+                </div>
 
-              <div className="space-y-6">
-                <h2 className="text-3xl font-black uppercase leading-tight italic">
-                  One last step...
-                </h2>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
                   {selectedParty === 'Others' && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-yellow-400">
-                        Specify Party Name
+                    <div className="space-y-3">
+                      <label className="text-xs font-black uppercase tracking-widest text-yellow-400 flex items-center gap-2">
+                        <AlertCircle size={14} /> Specify Party Name
                       </label>
                       <input 
                         type="text"
                         placeholder="Type party name..."
                         required
-                        className="w-full p-4 rounded-xl bg-black/40 border-2 border-white/10 focus:border-yellow-400 outline-none transition-all"
+                        className="w-full p-4 rounded-xl bg-black/40 border-2 border-white/10 focus:border-yellow-400 outline-none transition-all placeholder:italic"
                         value={formData.otherPartyName || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, otherPartyName: e.target.value }))}
                       />
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <label className="text-xs font-black uppercase tracking-widest text-yellow-400">
                       Select Age Group
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {AGE_RANGES.map((range) => (
                         <button
                           key={range}
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, age: range }))}
                           className={cn(
-                            "p-3 rounded-lg text-sm font-bold border-2 transition-all",
+                            "p-4 rounded-xl text-sm font-bold border-2 transition-all",
                             formData.age === range 
-                              ? "bg-yellow-400 text-black border-yellow-400" 
+                              ? "bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105" 
                               : "bg-white/5 border-white/10 hover:border-white/30"
                           )}
                         >
@@ -254,37 +259,21 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-yellow-400">
-                      Occupation / Business Type
-                    </label>
-                    <select
-                      required
-                      className="w-full p-4 rounded-xl bg-black/40 border-2 border-white/10 focus:border-yellow-400 outline-none transition-all appearance-none cursor-pointer font-bold"
-                      value={formData.occupation}
-                      onChange={(e) => setFormData(prev => ({ ...prev, occupation: e.target.value }))}
-                    >
-                      <option value="" disabled className="bg-zinc-800">Select your occupation</option>
-                      {OCCUPATIONS.map((occ) => (
-                        <option key={occ} value={occ} className="bg-zinc-800 italic">{occ}</option>
-                      ))}
-                    </select>
-                  </div>
-
                   {error && (
-                    <div className="p-4 rounded-xl bg-red-500/20 border border-red-500 flex items-center gap-3 text-sm font-bold">
+                    <div className="p-4 rounded-xl bg-red-500/20 border border-red-500 flex items-center gap-3 text-sm font-bold animate-pulse">
                       <AlertCircle size={18} /> {error}
                     </div>
                   )}
 
                   <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    disabled={isSubmitting}
-                    className="w-full p-5 bg-yellow-400 text-black font-black uppercase tracking-tighter text-xl rounded-2xl shadow-[4px_4px_0px_#000] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={isSubmitting || !selectedParty}
+                    className="w-full p-6 bg-yellow-400 text-black font-black uppercase tracking-tighter text-2xl rounded-2xl shadow-[6px_6px_0px_#000] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="animate-spin" size={24} /> Submitting...
+                        <Loader2 className="animate-spin" size={28} /> Processing...
                       </>
                     ) : (
                       'Cast My Vote'
@@ -294,6 +283,7 @@ export default function App() {
               </div>
             </motion.div>
           )}
+
 
           {view === 'success' && (
             <motion.div
@@ -323,7 +313,7 @@ export default function App() {
                 <button 
                   onClick={() => {
                     setView('home');
-                    setFormData({ age: '', occupation: '' });
+                    setFormData({ age: '' });
                     setSelectedParty(null);
                   }}
                   className="text-sm font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
@@ -387,7 +377,9 @@ export default function App() {
                           />
                           <Tooltip 
                             cursor={{ fill: '#ffffff05' }}
-                            contentStyle={{ background: '#18181b', border: '1px solid #ffffff20', borderRadius: '12px' }}
+                            contentStyle={{ background: '#18181b', border: '1px solid #ffffff20', borderRadius: '12px', padding: '12px' }}
+                            itemStyle={{ color: '#ffffff', fontSize: '12px', fontWeight: '600' }}
+                            labelStyle={{ color: '#ffffff', fontWeight: '900', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}
                           />
                           <Bar dataKey="votes" radius={[0, 4, 4, 0]}>
                             {PARTIES.map((entry, index) => (
@@ -400,70 +392,39 @@ export default function App() {
                   </div>
 
                   {/* Demographics */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-black/30 p-6 rounded-3xl border border-white/10 space-y-4">
-                      <h3 className="text-lg font-black uppercase tracking-widest text-yellow-400">
-                        Age Groups
-                      </h3>
-                      <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={AGE_RANGES.map(range => ({
-                                name: range,
-                                value: votes.filter(v => v.age === range).length
-                              })).filter(d => d.value > 0)}
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={5}
-                              dataKey="value"
-                            >
-                              {[...Array(6)].map((_, i) => (
-                                <Cell key={i} fill={`hsl(${i * 60}, 70%, 50%)`} />
-                              ))}
-                            </Pie>
-                            <Tooltip 
-                              contentStyle={{ background: '#18181b', border: '1px solid #ffffff20', borderRadius: '12px' }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                    <div className="bg-black/30 p-6 rounded-3xl border border-white/10 space-y-4 overflow-hidden">
-                      <h3 className="text-lg font-black uppercase tracking-widest text-yellow-400">
-                        Top Occupations
-                      </h3>
-                      <div className="space-y-3">
-                        {OCCUPATIONS
-                          .map(occ => ({
-                            name: occ,
-                            count: votes.filter(v => v.occupation === occ).length
-                          }))
-                          .filter(o => o.count > 0)
-                          .sort((a, b) => b.count - a.count)
-                          .slice(0, 5)
-                          .map((o, i) => (
-                            <div key={i} className="flex flex-col gap-1">
-                              <div className="flex justify-between text-xs font-bold px-1">
-                                <span className="truncate opacity-80">{o.name}</span>
-                                <span className="text-yellow-400 border-b border-yellow-400/30">{o.count}</span>
-                              </div>
-                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <motion.div 
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${(o.count / votes.length) * 100}%` }}
-                                  className="h-full bg-yellow-400"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                      </div>
+                  <div className="bg-black/30 p-6 rounded-3xl border border-white/10 space-y-4">
+                    <h3 className="text-lg font-black uppercase tracking-widest text-yellow-400">
+                      Age Groups
+                    </h3>
+                    <div className="h-[250px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={AGE_RANGES.map(range => ({
+                              name: range,
+                              value: votes.filter(v => v.age === range).length
+                            })).filter(d => d.value > 0)}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {[...Array(6)].map((_, i) => (
+                              <Cell key={i} fill={`hsl(${i * 60}, 70%, 50%)`} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ background: '#18181b', border: '1px solid #ffffff20', borderRadius: '12px', padding: '12px' }}
+                            itemStyle={{ color: '#ffffff', fontSize: '12px', fontWeight: '600' }}
+                            labelStyle={{ color: '#ffffff', fontWeight: '900', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
 
-                  {/* Detailed Log (Optional but good for transparency) */}
+                  {/* Detailed Log */}
                   <div className="bg-black/30 p-6 rounded-3xl border border-white/10 space-y-4">
                     <h3 className="text-lg font-black uppercase tracking-widest text-yellow-400">
                       Recent Activity
@@ -475,7 +436,7 @@ export default function App() {
                             <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 shadow-[0_0_5px_#facc15]" />
                             <span className="font-black uppercase tracking-widest">{getPartyDisplayName(v)}</span>
                           </div>
-                          <span className="opacity-50 italic">{v.age} • {v.occupation}</span>
+                          <span className="opacity-50 italic">{v.age}</span>
                         </div>
                       ))}
                     </div>
