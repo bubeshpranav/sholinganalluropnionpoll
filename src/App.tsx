@@ -142,6 +142,16 @@ export default function App() {
         </button>
       </nav>
 
+      {/* Top Right Logo */}
+      <div className="fixed top-14 right-4 z-40 w-32 md:w-48 pointer-events-none select-none overflow-hidden rounded-xl">
+        <img 
+          src="https://res.cloudinary.com/dhjfoibdf/image/upload/q_auto/f_auto/v1776521632/3218f156-db49-413c-bc4c-7319a17a097a_azxc8m.png" 
+          alt="Arasiyal Kalam" 
+          className="w-full h-auto object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+          referrerPolicy="no-referrer"
+        />
+      </div>
+
       <main className="pt-20 pb-12 px-4 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
           {view === 'home' && (
