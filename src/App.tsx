@@ -156,8 +156,8 @@ export default function App() {
                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
                   Tamil Nadu
                 </h1>
-                <p className="text-xl font-medium tracking-widest text-yellow-400 uppercase">
-                  South / தெற்கு Zone
+                <p className="text-xl font-black tracking-widest text-yellow-400 uppercase">
+                  Sholinganallur Constituency
                 </p>
                 <div className="inline-block px-8 py-2 bg-yellow-400 text-black font-black rounded-full skew-x-[-12deg] shadow-[4px_4px_0px_#000]">
                   <span className="block skew-x-[12deg]">OPINION POLL</span>
