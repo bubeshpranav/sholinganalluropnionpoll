@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "Vote": {
+      "title": "Vote",
+      "description": "An individual voting entry in the opinion poll.",
+      "type": "object",
+      "properties": {
+        "party": {
+          "type": "string",
+          "description": "The political party or alliance selected for 2026."
+        },
+        "otherPartyName": {
+          "type": "string",
+          "description": "The name of the party if 'Others' was selected."
+        },
+        "age": {
+          "type": "string",
+          "description": "The age range of the voter."
+        },
+        "occupation": {
+          "type": "string",
+          "description": "The business type or occupation of the voter."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the vote was cast."
+        }
+      },
+      "required": ["party", "age", "occupation", "timestamp"]
+    }
+  },
+  "firestore": {
+    "votes": {
+      "schema": "Vote",
+      "description": "Collection of all cast votes."
+    }
+  }
+}

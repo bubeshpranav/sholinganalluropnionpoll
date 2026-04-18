@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidVote(data) {
+      return data.keys().hasAll(['party', 'age', 'occupation', 'timestamp']) &&
+             data.keys().size() >= 4 && data.keys().size() <= 6 &&
+             data.party is string && data.party.size() <= 100 &&
+             data.age is string && data.age.size() <= 50 &&
+             data.occupation is string && data.occupation.size() <= 100 &&
+             data.timestamp is timestamp &&
+             (data.party != 'Others' || (data.otherPartyName is string && data.otherPartyName.size() <= 100));
+    }
+
+    match /votes/{voteId} {
+      allow create: if isValidId(voteId) && isValidVote(incoming()) && incoming().timestamp == request.time;
+      allow read: if true; // Public results
+      allow update, delete: if false; // Immutable votes
+    }
+  }
+}
