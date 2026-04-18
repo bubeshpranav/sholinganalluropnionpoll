@@ -84,7 +84,7 @@ export default function App() {
   };
 
   const getPartyDisplayName = (vote: any) => {
-    if (vote.party === 'Others') return vote.otherPartyName || 'Other';
+    if (vote.party === 'Others') return vote.otherPartyName || 'Others';
     const party = PARTIES.find(p => p.id === vote.party);
     if (party) return party.subLabel;
     // Legacy support

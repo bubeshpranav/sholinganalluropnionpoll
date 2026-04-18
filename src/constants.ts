@@ -50,7 +50,7 @@ export const PARTIES: PartyInfo[] = [
   {
     id: 'Others',
     label: 'Others / Undecided',
-    subLabel: '',
+    subLabel: 'Others',
     color: 'bg-zinc-700'
   }
 ];
